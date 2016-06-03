@@ -1,0 +1,122 @@
+<div ng-if="!AeUser.applications.length" class="ng-hide">
+    <div ng-include="'templates/quickstart.html'"></div>
+</div>
+
+<ng-include src="'templates/loader.html'" ng-if="uptime.loading.uptime"></ng-include>
+
+<div ng-if="AeUser.applications.length">
+
+    <div ng-if="!uptime.loading.uptime">
+
+
+        <div class="alert alert-warning">
+            This section is currently in <strong>BETA</strong>. You an expect changes to functionality and usability improvements.
+            We encourage you to send us feedback and ideas for new functionality.
+        </div>
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel">
+                    <div class="panel-body ">
+                        <p class="form-inline">
+                            <select ng-model="uptime.resource" ng-change="uptime.updateSearchParams()" ng-options="r.resource_id as r.resource_name for r in AeUser.applications" class="SelectField form-control input-sm slim-input"></select>
+
+                            <select class="SelectField form-control input-sm" ng-model="uptime.timeSpan"
+                                    ng-options="i as i.label for i in uptime.timeOptions | objectToOrderedArray:'minutes'" ng-change="uptime.updateSearchParams()"
+                                    class="SelectField"></select>
+                        </p>
+
+                        <c3chart data-domid="uptime_history_chart" data-data="uptime.uptimeHistoryData" data-config="uptime.uptimeHistoryConfig" ng-if="!uptime.loading.uptimeCharts">
+                        </c3chart>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row" ng-if="!uptime.loading.uptime">
+            <div class="col-sm-8">
+                <div class="panel panel-default">
+                    <table class="table table-striped uptime-list">
+                        <caption>Todays uptime</caption>
+                        <thead>
+                        <tr>
+                            <th class="c1 interval">When</th>
+                            <th class="c2 avg_response">Average response time</th>
+                            <th class="c3 http_status">HTTP Status</th>
+                            <th class="c4 retries">Retries</th>
+                            <th class="c5 location">Location</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td colspan="5" class="p-a-0">
+                                <div style="max-height: 400px; overflow-y: auto">
+                                    <table class="table table-striped">
+                                        <tr ng-repeat="entry in uptime.latestStats track by entry.id" class="{{(entry.status_code == 0 || entry.status_code >= 400) ? 'problem' : ''}}">
+                                            <td class="c1 interval">
+                                                {{entry.interval.replace('T', ' ').slice(0,16)}}
+                                            </td>
+                                            <td class="c2 avg_response">{{entry.avg_response_time}}s</td>
+                                            <td class="c3 http_status">{{entry.status_code}} {{(entry.http_status == 0 || entry.http_status >= 400) ? 'Problem' : ''}}</td>
+                                            <td class="c4 retries">{{entry.retries}}</td>
+                                            <td class="c5 location"><img ng-src="/static/appenlight/images/icons/countries/{{entry.location.country}}.png"/> {{entry.location.city}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="col-sm-4">
+
+
+                <div class="panel">
+                    <div class="panel-body">
+                        <p>Uptime for last {{uptime.timeSpan.label}}</p>
+
+                        <c3chart data-domid="uptime_gauge" data-data="uptime.uptimeGaugeData" data-config="uptime.uptimeGaugeConfig" ng-if="!uptime.loading.uptime">
+                        </c3chart>
+
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <table class="table table-striped uptime-list">
+                        <caption>This month's uptime</caption>
+                        <thead>
+                        <tr>
+                            <th class="c1 interval">When</th>
+                            <th class="c2 avg_response">Average response time</th>
+                            <th class="c3 retries">Retries</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td colspan="3" class="p-a-0">
+                                <div style="max-height: 600px; overflow-y: auto">
+                                    <table class="table table-striped m-a-0">
+                                        <tr ng-repeat="entry in uptime.monthlyStats track by entry.id">
+                                            <td class="c1 interval">
+                                                {{entry.interval.replace('T', ' ').slice(0,16)}}
+                                            </td>
+                                            <td class="c2 avg_response">{{entry.avg_response_time}}s</td>
+                                            <td class="c3 retries">{{entry.retries}}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+
+    </div>
+</div>
