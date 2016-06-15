@@ -187,13 +187,13 @@ function PluginUptimeCEController($scope, $location, applicationsPropertyResourc
     vm.fetchUptimeMetrics = function () {
         vm.loading.uptimeCharts = true;
 
-        applicationsPropertyResource.query({
+        applicationsPropertyResource.get({
             'resourceId': vm.resource,
             'key': 'uptime_graphs',
             "start_date": timeSpanToStartDate(vm.timeSpan.key)
         }, function (data) {
             vm.uptimeHistoryData = {
-                json: data,
+                json: data.series,
                 keys: {
                     x: 'x',
                     value: ["response_time"]

@@ -165,7 +165,8 @@ class UptimeMetricService(BaseService):
             value = item['response_time']['sub_agg']['value']
             point['response_time'] = round(value, 3) if value else 0
             plot_data.append(point)
-        return plot_data
+        result_dict['series'] = plot_data
+        return result_dict
 
     @classmethod
     def check_for_alert(cls, resource, *args, **kwargs):
