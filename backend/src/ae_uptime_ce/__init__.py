@@ -21,6 +21,10 @@
 
 import pkg_resources
 
+__license__ = 'AGPLv3, and Commercial License'
+__author__ = 'RhodeCode GmbH'
+__url__ = 'http://rhodecode.com'
+
 PLUGIN_DEFINITION = {
     'name': 'ae_uptime_ce',
     'config': {'celery_tasks': ['ae_uptime_ce.celery.tasks'],

@@ -1,5 +1,6 @@
 """A setuptools based setup module.
 """
+import os
 import re
 
 # Always prefer setuptools over distutils
@@ -25,21 +26,40 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 
+def _get_meta_var(name, data, callback_handler=None):
+    import re
+    matches = re.compile(r'(?:%s)\s*=\s*(.*)' % name).search(data)
+    if matches:
+        if not callable(callback_handler):
+            callback_handler = lambda v: v
+
+        return callback_handler(eval(matches.groups()[0]))
+
+with open(os.path.join(here, 'src', 'ae_uptime_ce', '__init__.py'), 'r') as _meta:
+    _metadata = _meta.read()
+
+with open(os.path.join('src', 'ae_uptime_ce', 'VERSION')) as _meta_version:
+    __version__ = _meta_version.read().strip()
+
+__license__ = _get_meta_var('__license__', _metadata)
+__author__ = _get_meta_var('__author__', _metadata)
+__url__ = _get_meta_var('__url__', _metadata)
+
 setup(
     name='ae_uptime_ce',
-    version='1.0',
+    version=__version__,
     description='Appenlight Uptime Monitoring CE',
     long_description=long_description,
-    url='https://',
-    author='RhodeCode',
+    url=__url__,
+    author=__author__,
     author_email='support@rhodecode.com',
-    license='commercial',
+    license=__license__,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Monitoring',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7'
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4'
     ],
     keywords='appenlight uptime monitoring',
     package_dir={'': 'src'},
