@@ -1,6 +1,6 @@
 {
   "name": "ae_uptime_ce",
-  "description": "Uptime monitoring layer for App Enlight",
+  "description": "Uptime monitoring layer for AppEnlight",
   "devDependencies": {
     "bower": "1.7.9",
     "bower-requirejs": "1.2.0",

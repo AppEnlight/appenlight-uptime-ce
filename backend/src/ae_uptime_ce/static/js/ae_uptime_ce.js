@@ -191,7 +191,7 @@ angular.module('appenlight.templates').run(['$templateCache', function($template
 // # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #
 // # This program is dual-licensed. If you wish to learn more about the
-// # App Enlight Enterprise Edition, including its added features, Support
+// # AppEnlight Enterprise Edition, including its added features, Support
 // # services, and proprietary license terms, please see
 // # https://rhodecode.com/licenses/
 
@@ -235,7 +235,7 @@ angular.module('appenlight.plugins.ae_uptime_ce', []).config(['$stateProvider', 
 // # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #
 // # This program is dual-licensed. If you wish to learn more about the
-// # App Enlight Enterprise Edition, including its added features, Support
+// # AppEnlight Enterprise Edition, including its added features, Support
 // # services, and proprietary license terms, please see
 // # https://rhodecode.com/licenses/
 
@@ -323,7 +323,7 @@ function PluginUptimeCEConfigController(pluginConfigsResource) {
 // # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #
 // # This program is dual-licensed. If you wish to learn more about the
-// # App Enlight Enterprise Edition, including its added features, Support
+// # AppEnlight Enterprise Edition, including its added features, Support
 // # services, and proprietary license terms, please see
 // # https://rhodecode.com/licenses/
 
@@ -399,7 +399,7 @@ function PluginUptimeCEApplicationController(pluginConfigsResource) {
 // # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #
 // # This program is dual-licensed. If you wish to learn more about the
-// # App Enlight Enterprise Edition, including its added features, Support
+// # AppEnlight Enterprise Edition, including its added features, Support
 // # services, and proprietary license terms, please see
 // # https://rhodecode.com/licenses/
 

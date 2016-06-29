@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 # This program is dual-licensed. If you wish to learn more about the
-# App Enlight Enterprise Edition, including its added features, Support
+# AppEnlight Enterprise Edition, including its added features, Support
 # services, and proprietary license terms, please see
 # https://rhodecode.com/licenses/
 
@@ -150,7 +150,7 @@ default_location = '1'
 
 
 def main():
-    parser = argparse.ArgumentParser(description='App Enlight Uptime Monitor')
+    parser = argparse.ArgumentParser(description='AppEnlight Uptime Monitor')
     parser.add_argument('-c', '--config',
                         help='Configuration ini file')
     parser.add_argument('-s', '--sync-url',
