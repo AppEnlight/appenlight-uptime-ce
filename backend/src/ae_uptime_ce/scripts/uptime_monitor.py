@@ -32,7 +32,6 @@ from datetime import datetime
 import gevent
 import requests
 
-from gevent.lock import RLock
 from ae_uptime_ce.lib.ext_json import json
 
 logging.basicConfig(level=logging.INFO)
@@ -191,7 +190,7 @@ def main():
     sync_forever()
     gevent.spawn_later(10, check_forever)
     while True:
-        gevent.sleep(0.5)
+        gevent.sleep()
 
 if __name__ == '__main__':
     main()
