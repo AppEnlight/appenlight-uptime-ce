@@ -60,12 +60,6 @@ angular.module('appenlight.templates').run(['$templateCache', function($template
     "\n" +
     "    <div ng-if=\"!uptime.loading.uptime\">\n" +
     "\n" +
-    "\n" +
-    "        <div class=\"alert alert-warning\">\n" +
-    "            This section is currently in <strong>BETA</strong>. You an expect changes to functionality and usability improvements.\n" +
-    "            We encourage you to send us feedback and ideas for new functionality.\n" +
-    "        </div>\n" +
-    "\n" +
     "        <div class=\"row\">\n" +
     "            <div class=\"col-sm-12\">\n" +
     "                <div class=\"panel\">\n" +
