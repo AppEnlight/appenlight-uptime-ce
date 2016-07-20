@@ -20,6 +20,7 @@
 # https://rhodecode.com/licenses/
 
 from gevent import monkey
+
 monkey.patch_all()
 
 import argparse
@@ -44,8 +45,6 @@ try:
 except Exception:
     pass
 
-lock = RLock()
-
 APPS_TO_CHECK = {}
 CONFIG = {}
 
@@ -57,31 +56,25 @@ def sync_apps():
                'User-Agent': 'Appenlight/ping-service'}
     try:
         resp = requests.get(CONFIG['sync_url'], headers=headers,
-                            timeout=30)
+                            timeout=10)
         resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
         log.error(str(exc))
         return
-
-    with lock:
-        active_app_ids = []
-        apps = resp.json()
-        log.info('Total applications found {}'.format(len(apps)))
-        for app in apps:
-            log.debug('processing app: {}'.format(app))
-            if not app['id'] in APPS_TO_CHECK:
-                APPS_TO_CHECK[app['id']] = {
-                    'url': app['url'],
-                    'greenlet': gevent.spawn_later(0.1, check_response,
-                                                   app['id'])}
-            else:
-                APPS_TO_CHECK[app['id']]['url'] = app['url']
+    active_app_ids = []
+    apps = resp.json()
+    log.info('Total applications found {}'.format(len(apps)))
+    for app in apps:
+        # update urls
+        log.debug('processing app: {}'.format(app))
+        if app['url']:
+            APPS_TO_CHECK[app['id']] = app['url']
             active_app_ids.append(app['id'])
-
-        for app_id in APPS_TO_CHECK.keys():
-            if app_id not in active_app_ids:
-                # means someone turned off monitoring
-                APPS_TO_CHECK.pop(app_id, None)
+    log.info('Active applications found {}'.format(len(active_app_ids)))
+    for app_id in list(APPS_TO_CHECK.keys()):
+        if app_id not in active_app_ids:
+            # means someone turned off monitoring
+            APPS_TO_CHECK.pop(app_id, None)
 
 
 last_sync = datetime.utcnow()
@@ -97,10 +90,10 @@ def check_response(app_id):
                    'User-Agent': 'Appenlight/ping-service'}
         try:
             resp = requests.get(
-                APPS_TO_CHECK[app_id]['url'],
+                APPS_TO_CHECK[app_id],
                 headers={'User-Agent': 'Appenlight/ping-service'},
                 timeout=20, verify=False)
-            is_ok = resp.status_code < 400
+            is_ok = resp.status_code == requests.codes.ok
             elapsed = resp.elapsed.total_seconds()
             status_code = resp.status_code
             break
@@ -115,8 +108,7 @@ def check_response(app_id):
         tries += 1
 
     log.info('app:{} url:{} status:{} time:{} tries:{}'.format(
-        app_id, APPS_TO_CHECK[app_id]['url'],
-        status_code, elapsed, tries))
+        app_id, APPS_TO_CHECK[app_id], status_code, elapsed, tries))
     try:
         json_data = json.dumps(
             {'resource': app_id,
@@ -132,16 +124,24 @@ def check_response(app_id):
             log.error('communication problem, {}'.format(result.status_code))
     except requests.exceptions.RequestException as exc:
         log.error(str(exc))
-    if app_id in APPS_TO_CHECK:
-        APPS_TO_CHECK[app_id]['greenlet'] = gevent.spawn_later(
-            60, check_response, app_id)
 
 
-def check_forever():
+def sync_forever():
     try:
         sync_apps()
     finally:
-        gevent.spawn_later(10, check_forever).join()
+        gevent.spawn_later(20, sync_forever)
+
+
+def check_forever():
+    log.info('Spawning new checks')
+    import pprint
+    pprint.pprint(APPS_TO_CHECK)
+    try:
+        for app_id in APPS_TO_CHECK.keys():
+            gevent.spawn(check_response, app_id)
+    finally:
+        gevent.spawn_later(60, check_forever)
 
 
 default_sync_url = 'http://127.0.0.1:6543/api/uptime_app_list'
@@ -190,8 +190,10 @@ def main():
         CONFIG['location']))
     log.info('Sending to: {}'.format(CONFIG['update_url']))
     log.info('Syncing info from: {}'.format(CONFIG['update_url']))
-    check_forever()
-
+    sync_forever()
+    gevent.spawn_later(10, check_forever)
+    while True:
+        gevent.sleep(0.5)
 
 if __name__ == '__main__':
     main()
