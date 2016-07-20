@@ -44,15 +44,12 @@ def uptime_create(request):
     Endpoint for uptime data from probing daemons
     """
     data = request.json_body
-    application = ApplicationService.by_id(data.get('resource'))
-    if not application:
-        raise HTTPNotFound()
     params = dict(request.params.copy())
     proto_version = parse_proto(params.get('protocol_version', ''))
-    tasks.add_uptime_stats.delay(application.resource_id, params, data)
-    msg = 'UPTIME call %s %s client:%s'
-    log.info(msg % (application, proto_version,
-                    request.headers.get('user_agent')))
+    for entry in data:
+        tasks.add_uptime_stats.delay(params, entry)
+    msg = 'UPTIME call %s client:%s'
+    log.info(msg % (proto_version, request.headers.get('user_agent')))
     return 'OK: uptime metrics accepted'
 
 

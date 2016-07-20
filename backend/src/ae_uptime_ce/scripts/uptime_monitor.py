@@ -32,9 +32,12 @@ from datetime import datetime
 import gevent
 import requests
 
+from gevent.queue import Queue, Empty
+
 from ae_uptime_ce.lib.ext_json import json
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 root_log = logging.getLogger()
 root_log.setLevel(logging.INFO)
 root_log.handlers[0].setFormatter(formatter)
@@ -50,8 +53,12 @@ except Exception:
 APPS_TO_CHECK = {}
 CONFIG = {}
 
+RESPONSE_QUEUE = Queue()
+
 
 def sync_apps():
+    """ Periodically grabs the application list from server"""
+
     log.info('Syncing monitored url list')
     headers = {'x-appenlight-auth-token': CONFIG['api_key'],
                "Content-type": "application/json",
@@ -82,18 +89,17 @@ def sync_apps():
 last_sync = datetime.utcnow()
 
 
-def check_response(app_id):
-    log.debug('checking response for: {}'.format(app_id))
+def check_response(app_id, url):
+    """ Checks response for specific url """
+    gevent.sleep(0.1)
     current_time = datetime.utcnow()
     tries = 1
     while tries < 3:
+        log.info('checking response for: {}'.format(app_id))
         start_time = datetime.utcnow()
-        headers = {'x-appenlight-auth-token': CONFIG['api_key'],
-                   "Content-type": "application/json",
-                   'User-Agent': 'Appenlight/ping-service'}
         try:
             resp = requests.get(
-                APPS_TO_CHECK[app_id],
+                url,
                 headers={'User-Agent': 'Appenlight/ping-service'},
                 timeout=20, verify=False)
             is_ok = resp.status_code == requests.codes.ok
@@ -112,21 +118,13 @@ def check_response(app_id):
 
     log.info('app:{} url:{} status:{} time:{} tries:{}'.format(
         app_id, APPS_TO_CHECK[app_id], status_code, elapsed, tries))
-    try:
-        json_data = json.dumps(
-            {'resource': app_id,
-             "is_ok": is_ok,
-             "response_time": elapsed,
-             'timestamp': current_time,
-             'status_code': status_code,
-             'location': CONFIG['location'],
-             'tries': tries})
-        result = requests.post(CONFIG['update_url'], data=json_data,
-                               headers=headers, timeout=30)
-        if result.status_code != requests.codes.ok:
-            log.error('communication problem, {}'.format(result.status_code))
-    except requests.exceptions.RequestException as exc:
-        log.error(str(exc))
+    RESPONSE_QUEUE.put({'resource_id': app_id,
+                        "is_ok": is_ok,
+                        "response_time": elapsed,
+                        'timestamp': current_time,
+                        'status_code': status_code,
+                        'location': CONFIG['location'],
+                        'tries': tries})
 
 
 def sync_forever():
@@ -138,11 +136,37 @@ def sync_forever():
 
 def check_forever():
     log.info('Spawning new checks')
+    for app_id, url in APPS_TO_CHECK.items():
+        gevent.spawn_later(0.1, check_response, app_id, url)
+    gevent.spawn_later(60, check_forever)
+
+
+def report_forever():
+    """ Sends response info back to AppEnlight """
+    headers = {'x-appenlight-auth-token': CONFIG['api_key'],
+               "Content-type": "application/json",
+               'User-Agent': 'Appenlight/ping-service'}
     try:
-        for app_id in APPS_TO_CHECK.keys():
-            gevent.spawn(check_response, app_id)
+        reported = []
+        while True:
+            try:
+                reported.append(RESPONSE_QUEUE.get(timeout=5))
+            except Empty:
+                break
+        while reported:
+            log.info('Reporting data back to AppEnlight')
+            try:
+                result = requests.post(CONFIG['update_url'],
+                                       data=json.dumps(reported[:500]),
+                                       headers=headers, timeout=30)
+                if result.status_code != requests.codes.ok:
+                    log.error('communication problem, {}'.format(
+                        result.status_code))
+            except requests.exceptions.RequestException as exc:
+                log.error(str(exc))
+            reported = reported[500:]
     finally:
-        gevent.spawn_later(60, check_forever)
+        gevent.spawn_later(5, report_forever)
 
 
 default_sync_url = 'http://127.0.0.1:6543/api/uptime_app_list'
@@ -192,9 +216,11 @@ def main():
     log.info('Sending to: {}'.format(CONFIG['update_url']))
     log.info('Syncing info from: {}'.format(CONFIG['update_url']))
     sync_forever()
-    gevent.spawn_later(10, check_forever)
+    report_forever()
+    gevent.spawn_later(5, check_forever)
     while True:
-        gevent.sleep()
+        gevent.sleep(0.5)
+
 
 if __name__ == '__main__':
     main()

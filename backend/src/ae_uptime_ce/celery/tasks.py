@@ -39,7 +39,7 @@ log = get_task_logger(__name__)
 
 
 @celery.task(queue="metrics", default_retry_delay=600, max_retries=999)
-def add_uptime_stats(resource_id, request, metric, environ=None, **kwargs):
+def add_uptime_stats(request, metric, environ=None, **kwargs):
     proto_version = request.get('protocol_version')
     if proto_version:
         try:
@@ -47,8 +47,10 @@ def add_uptime_stats(resource_id, request, metric, environ=None, **kwargs):
         except (ValueError, TypeError) as exc:
             proto_version = None
     try:
-        application = ApplicationService.by_id_cached()(resource_id)
+        application = ApplicationService.by_id_cached()(metric['resource_id'])
         application = DBSession.merge(application, load=False)
+        if not application:
+            return
         start_interval = convert_date(metric['timestamp'])
         start_interval = start_interval.replace(second=0, microsecond=0)
         new_metric = UptimeMetric(
