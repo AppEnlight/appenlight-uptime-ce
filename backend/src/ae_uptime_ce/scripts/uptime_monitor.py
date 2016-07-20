@@ -135,8 +135,6 @@ def sync_forever():
 
 def check_forever():
     log.info('Spawning new checks')
-    import pprint
-    pprint.pprint(APPS_TO_CHECK)
     try:
         for app_id in APPS_TO_CHECK.keys():
             gevent.spawn(check_response, app_id)
