@@ -61,26 +61,24 @@ def uptime(request):
     uptime = UptimeMetricService.get_uptime_by_app(
         application.resource_id, stats_since, until=now)
     latest_stats = UptimeMetricService.get_uptime_stats(
-        application.resource_id, stat_type='daily').all()
-    monthly_stats = UptimeMetricService.get_uptime_stats(
-        application.resource_id, stat_type='monthly').all()
+        application.resource_id).all()
+    daily_stats = UptimeMetricService.get_daily_uptime_stats(
+        application.resource_id).all()
     daily_list = []
     monthly_list = []
-    for i, stat_list in enumerate([monthly_stats, latest_stats]):
+    for i, stat_list in enumerate([daily_stats, latest_stats]):
         for j, entry in enumerate(stat_list):
 
             item = {
                 'id': j,
-                'total_checks': entry.total_checks,
-                'retries': entry.tries - entry.total_checks,
+                'total_checks': getattr(entry, 'total_checks', 0),
+                'retries': entry.tries,
+                'avg_response_time': entry.response_time or 0,
                 'status_code': entry.status_code,
-                'location': location_dict.get(entry.location,
+                'location': location_dict.get(getattr(entry, 'location', None),
                                               {'city': 'unknown',
                                                'country': 'us'})
             }
-            if entry.total_checks > 0:
-                avg_time = round(entry.response_time / entry.total_checks, 3)
-                item['avg_response_time'] = avg_time
             if i == 1:
                 item['interval'] = entry.interval.strftime('%Y-%m-%dT%H:%M')
                 item['timestamp'] = entry.interval
@@ -89,7 +87,8 @@ def uptime(request):
                 item['interval'] = entry.interval.strftime('%Y-%m-%d')
                 monthly_list.append(item)
 
-    return {'current_uptime': uptime, "latest_stats": daily_list,
+    return {'current_uptime': uptime,
+            "latest_stats": daily_list,
             "monthly_stats": monthly_list}
 
 

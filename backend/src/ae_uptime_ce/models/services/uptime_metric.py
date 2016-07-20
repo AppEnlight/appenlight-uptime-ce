@@ -57,31 +57,41 @@ class UptimeMetricService(BaseService):
         return 100
 
     @classmethod
-    def get_uptime_stats(cls, resource_id, stat_type, db_session=None):
+    def get_uptime_stats(cls, resource_id, db_session=None):
         db_session = get_db_session(db_session)
         now = datetime.utcnow().replace(microsecond=0, second=0)
-        if stat_type != 'monthly':
-            floor_func = UptimeMetric.start_interval
-            since_when = now - timedelta(hours=1)
-        else:
-            floor_func = sa.func.date_trunc('day', UptimeMetric.start_interval)
-            since_when = now.replace(day=1, minute=0, second=0)
-
-        check_count = sa.func.count(
-            UptimeMetric.resource_id).label('total_checks')
-        rt_sum = sa.func.sum(UptimeMetric.response_time).label('response_time')
-        tries_sum = sa.func.sum(UptimeMetric.tries).label('tries')
-        code_min = sa.func.min(UptimeMetric.status_code).label('status_code')
+        floor_func = UptimeMetric.start_interval
+        since_when = now - timedelta(hours=1)
         query = db_session.query(floor_func.label('interval'),
-                                 check_count,
-                                 rt_sum,
-                                 tries_sum,
-                                 code_min,
+                                 UptimeMetric.response_time,
+                                 UptimeMetric.tries,
+                                 UptimeMetric.status_code,
                                  UptimeMetric.location
                                  )
         query = query.filter(UptimeMetric.resource_id == resource_id)
         query = query.filter(UptimeMetric.start_interval >= since_when)
-        query = query.group_by(floor_func, UptimeMetric.location)
+        query = query.order_by(sa.desc(floor_func))
+        return query
+
+    @classmethod
+    def get_daily_uptime_stats(cls, resource_id, db_session=None):
+        db_session = get_db_session(db_session)
+        now = datetime.utcnow().replace(microsecond=0, second=0)
+        floor_func = sa.func.date_trunc('day', UptimeMetric.start_interval)
+        since_when = now.replace(day=1, minute=0, second=0)
+        rt_avg = sa.func.avg(
+            sa.func.nullif(UptimeMetric.response_time, 0)
+        ).label('response_time')
+        tries_sum = sa.func.sum(UptimeMetric.tries).label('tries')
+        code_min = sa.func.min(UptimeMetric.status_code).label('status_code')
+        query = db_session.query(floor_func.label('interval'),
+                                 rt_avg,
+                                 tries_sum,
+                                 code_min,
+                                 )
+        query = query.filter(UptimeMetric.resource_id == resource_id)
+        query = query.filter(UptimeMetric.start_interval >= since_when)
+        query = query.group_by(floor_func)
         query = query.order_by(sa.desc(floor_func))
         return query
 

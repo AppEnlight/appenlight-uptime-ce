@@ -91,7 +91,7 @@ def check_response(app_id):
     log.debug('checking response for: {}'.format(app_id))
     current_time = datetime.utcnow()
     tries = 1
-    while tries < 4:
+    while tries < 3:
         headers = {'x-appenlight-auth-token': CONFIG['api_key'],
                    "Content-type": "application/json",
                    'User-Agent': 'Appenlight/ping-service'}
