@@ -90,7 +90,7 @@ angular.module('appenlight.templates').run(['$templateCache', function($template
     "                            <th class=\"c1 interval\">When</th>\n" +
     "                            <th class=\"c2 avg_response\">Average response time</th>\n" +
     "                            <th class=\"c3 http_status\">HTTP Status</th>\n" +
-    "                            <th class=\"c4 retries\">Retries</th>\n" +
+    "                            <th class=\"c4 retries\">Tries</th>\n" +
     "                            <th class=\"c5 location\">Location</th>\n" +
     "                        </tr>\n" +
     "                        </thead>\n" +
@@ -137,7 +137,7 @@ angular.module('appenlight.templates').run(['$templateCache', function($template
     "                        <tr>\n" +
     "                            <th class=\"c1 interval\">When</th>\n" +
     "                            <th class=\"c2 avg_response\">Average response time</th>\n" +
-    "                            <th class=\"c3 retries\">Retries</th>\n" +
+    "                            <th class=\"c3 retries\">Tries</th>\n" +
     "                        </tr>\n" +
     "                        </thead>\n" +
     "                        <tbody>\n" +
