@@ -34,10 +34,13 @@ import requests
 
 from ae_uptime_ce.lib.ext_json import json
 
-logging.basicConfig(level=logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+root_log = logging.getLogger()
+root_log.setLevel(logging.INFO)
+root_log.handlers[0].setFormatter(formatter)
 logging.getLogger('requests').setLevel(logging.WARNING)
+# create console handler with a higher log level
 log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 
 try:
     requests.packages.urllib3.disable_warnings()
@@ -84,6 +87,7 @@ def check_response(app_id):
     current_time = datetime.utcnow()
     tries = 1
     while tries < 3:
+        start_time = datetime.utcnow()
         headers = {'x-appenlight-auth-token': CONFIG['api_key'],
                    "Content-type": "application/json",
                    'User-Agent': 'Appenlight/ping-service'}
@@ -93,7 +97,7 @@ def check_response(app_id):
                 headers={'User-Agent': 'Appenlight/ping-service'},
                 timeout=20, verify=False)
             is_ok = resp.status_code == requests.codes.ok
-            elapsed = resp.elapsed.total_seconds()
+            elapsed = (datetime.utcnow() - start_time).total_seconds()
             status_code = resp.status_code
             break
         except requests.exceptions.Timeout:
