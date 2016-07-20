@@ -95,7 +95,7 @@ def check_response(app_id, url):
     current_time = datetime.utcnow()
     tries = 1
     while tries < 3:
-        log.info('checking response for: {}'.format(app_id))
+        log.debug('checking response for: {} {}'.format(app_id, url))
         start_time = datetime.utcnow()
         try:
             resp = requests.get(
