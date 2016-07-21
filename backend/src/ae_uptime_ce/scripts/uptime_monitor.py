@@ -106,7 +106,7 @@ def check_response(app_id):
         elapsed = 0
         status_code = 0
         try:
-            with gevent.Timeout(1, False):
+            with gevent.Timeout(20, False):
                 resp = session.get(
                     url,
                     headers={'User-Agent': 'Appenlight/ping-service'},
