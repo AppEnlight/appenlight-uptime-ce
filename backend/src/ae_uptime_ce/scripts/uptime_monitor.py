@@ -19,8 +19,12 @@
 # services, and proprietary license terms, please see
 # https://rhodecode.com/licenses/
 
+import gevent
 from gevent import monkey
 
+gevent.get_hub().resolver_class = ['gevent.resolver_ares.Resolver',
+                                   'gevent.resolver_thread.Resolver',
+                                   'gevent.socket.BlockingResolver']
 monkey.patch_all()
 
 import argparse
@@ -29,7 +33,6 @@ import logging
 
 from datetime import datetime
 
-import gevent
 import requests
 
 from gevent.queue import Queue, Empty
@@ -64,8 +67,7 @@ def sync_apps():
                "Content-type": "application/json",
                'User-Agent': 'Appenlight/ping-service'}
     try:
-        resp = requests.get(CONFIG['sync_url'], headers=headers,
-                            timeout=10)
+        resp = requests.get(CONFIG['sync_url'], headers=headers, timeout=10)
         resp.raise_for_status()
     except requests.exceptions.RequestException as exc:
         log.error(str(exc))
@@ -76,8 +78,10 @@ def sync_apps():
     for app in apps:
         # update urls
         log.debug('processing app: {}'.format(app))
-        if app['url']:
-            APPS_TO_CHECK[app['id']] = app['url']
+        if app['url'].strip():
+            APPS_TO_CHECK[app['id']] = {'url': app['url'],
+                                        'session': requests.Session(),
+                                        'ip': None}
             active_app_ids.append(app['id'])
     log.info('Active applications found {}'.format(len(active_app_ids)))
     for app_id in list(APPS_TO_CHECK.keys()):
@@ -89,35 +93,35 @@ def sync_apps():
 last_sync = datetime.utcnow()
 
 
-def check_response(app_id, url):
+def check_response(app_id):
     """ Checks response for specific url """
-    gevent.sleep(0.1)
+    url = APPS_TO_CHECK[app_id]['url']
+    session = APPS_TO_CHECK[app_id]['session']
     current_time = datetime.utcnow()
     tries = 1
     while tries < 3:
         log.debug('checking response for: {} {}'.format(app_id, url))
         start_time = datetime.utcnow()
+        is_ok = False
+        elapsed = 0
+        status_code = 0
         try:
-            resp = requests.get(
-                url,
-                headers={'User-Agent': 'Appenlight/ping-service'},
-                timeout=20, verify=False)
-            is_ok = resp.status_code == requests.codes.ok
-            elapsed = (datetime.utcnow() - start_time).total_seconds()
-            status_code = resp.status_code
+            with gevent.Timeout(1, False):
+                resp = session.get(
+                    url,
+                    headers={'User-Agent': 'Appenlight/ping-service'},
+                    timeout=20, verify=False)
+                is_ok = resp.status_code == requests.codes.ok
+                elapsed = (datetime.utcnow() - start_time).total_seconds()
+                status_code = resp.status_code
             break
-        except requests.exceptions.Timeout:
-            is_ok = False
-            elapsed = 0
-            status_code = 0
-        except requests.exceptions.RequestException:
-            is_ok = False
-            elapsed = 0
-            status_code = 0
+        except (requests.exceptions.Timeout,
+                requests.exceptions.RequestException) as exc:
+            log.info(exc)
         tries += 1
 
     log.info('app:{} url:{} status:{} time:{} tries:{}'.format(
-        app_id, APPS_TO_CHECK[app_id], status_code, elapsed, tries))
+        app_id, url, status_code, elapsed, tries))
     RESPONSE_QUEUE.put({'resource_id': app_id,
                         "is_ok": is_ok,
                         "response_time": elapsed,
@@ -136,8 +140,8 @@ def sync_forever():
 
 def check_forever():
     log.info('Spawning new checks')
-    for app_id, url in APPS_TO_CHECK.items():
-        gevent.spawn_later(0.1, check_response, app_id, url)
+    for app_id in APPS_TO_CHECK:
+        gevent.spawn_later(0.1, check_response, app_id)
     gevent.spawn_later(60, check_forever)
 
 
