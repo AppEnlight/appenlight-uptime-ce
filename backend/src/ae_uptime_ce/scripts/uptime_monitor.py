@@ -22,9 +22,11 @@
 import gevent
 from gevent import monkey
 
-gevent.get_hub().resolver_class = ['gevent.resolver_ares.Resolver',
-                                   'gevent.resolver_thread.Resolver',
-                                   'gevent.socket.BlockingResolver']
+gevent.get_hub().resolver_class = [
+    'ae_uptime_ce.lib.resolver.CachingResolver',
+    'gevent.resolver_ares.Resolver',
+    'gevent.resolver_thread.Resolver',
+    'gevent.socket.BlockingResolver']
 monkey.patch_all()
 
 import argparse
@@ -38,6 +40,7 @@ import requests
 from gevent.queue import Queue, Empty
 
 from ae_uptime_ce.lib.ext_json import json
+from ae_uptime_ce.lib.resolver import CachingResolverException
 
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -106,17 +109,18 @@ def check_response(app_id):
         elapsed = 0
         status_code = 0
         try:
-            with gevent.Timeout(20, False):
-                resp = session.get(
-                    url,
-                    headers={'User-Agent': 'Appenlight/ping-service'},
-                    timeout=20, verify=False)
-                is_ok = resp.status_code == requests.codes.ok
-                elapsed = (datetime.utcnow() - start_time).total_seconds()
-                status_code = resp.status_code
+            resp = session.get(
+                url,
+                headers={'User-Agent': 'Appenlight/ping-service'},
+                timeout=20, verify=False)
+            is_ok = resp.status_code == requests.codes.ok
+            elapsed = resp.elapsed.total_seconds()
+            status_code = resp.status_code
             break
         except (requests.exceptions.Timeout,
-                requests.exceptions.RequestException) as exc:
+                requests.exceptions.RequestException,
+                CachingResolverException
+                ) as exc:
             log.info(exc)
         tries += 1
 
