@@ -60,7 +60,7 @@ class CachingResolver(Resolver):
     def getaddrinfo(self, *args, **kwargs):
         @memory_region.cache_on_arguments()
         def _cached(*args, **kwargs):
-            with gevent.Timeout(5, False):
+            with gevent.Timeout(20, False):
                 return super(CachingResolver, self).getaddrinfo(*args, **kwargs)
 
         result = _cached(*args, **kwargs)
