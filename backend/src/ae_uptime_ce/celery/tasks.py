@@ -26,6 +26,7 @@ from zope.sqlalchemy import mark_changed
 
 from appenlight.celery import celery
 from appenlight.lib import print_traceback
+from appenlight.lib.utils import parse_proto
 from appenlight.lib.utils.date_utils import convert_date
 from appenlight.models import DBSession, Datastores
 from appenlight.models.event import Event
@@ -39,13 +40,8 @@ log = get_task_logger(__name__)
 
 
 @celery.task(queue="metrics", default_retry_delay=600, max_retries=999)
-def add_uptime_stats(request, metric, environ=None, **kwargs):
-    proto_version = request.get('protocol_version')
-    if proto_version:
-        try:
-            proto_version = float(proto_version)
-        except (ValueError, TypeError) as exc:
-            proto_version = None
+def add_uptime_stats(params, metric):
+    proto_version = parse_proto(params.get('protocol_version'))
     try:
         application = ApplicationService.by_id_cached()(metric['resource_id'])
         application = DBSession.merge(application, load=False)
