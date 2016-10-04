@@ -1,10 +1,10 @@
-<div ng-if="!AeUser.applications.length" class="ng-hide">
+<div ng-if="!stateHolder.AeUser.applications.length" class="ng-hide">
     <div ng-include="'templates/quickstart.html'"></div>
 </div>
 
 <ng-include src="'templates/loader.html'" ng-if="uptime.loading.uptime"></ng-include>
 
-<div ng-if="AeUser.applications.length">
+<div ng-if="stateHolder.AeUser.applications.length">
 
     <div ng-if="!uptime.loading.uptime">
 
@@ -13,7 +13,7 @@
                 <div class="panel">
                     <div class="panel-body ">
                         <p class="form-inline">
-                            <select ng-model="uptime.resource" ng-change="uptime.updateSearchParams()" ng-options="r.resource_id as r.resource_name for r in AeUser.applications" class="SelectField form-control input-sm slim-input"></select>
+                            <select ng-model="uptime.resource" ng-change="uptime.updateSearchParams()" ng-options="r.resource_id as r.resource_name for r in stateHolder.AeUser.applications" class="SelectField form-control input-sm slim-input"></select>
 
                             <select class="SelectField form-control input-sm" ng-model="uptime.timeSpan"
                                     ng-options="i as i.label for i in uptime.timeOptions | objectToOrderedArray:'minutes'" ng-change="uptime.updateSearchParams()"

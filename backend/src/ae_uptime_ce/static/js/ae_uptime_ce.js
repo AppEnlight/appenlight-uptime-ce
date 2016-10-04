@@ -50,13 +50,13 @@ angular.module('appenlight.templates').run(['$templateCache', function($template
 
 
   $templateCache.put('/ae_uptime_ce/templates/uptime.html',
-    "<div ng-if=\"!AeUser.applications.length\" class=\"ng-hide\">\n" +
+    "<div ng-if=\"!stateHolder.AeUser.applications.length\" class=\"ng-hide\">\n" +
     "    <div ng-include=\"'templates/quickstart.html'\"></div>\n" +
     "</div>\n" +
     "\n" +
     "<ng-include src=\"'templates/loader.html'\" ng-if=\"uptime.loading.uptime\"></ng-include>\n" +
     "\n" +
-    "<div ng-if=\"AeUser.applications.length\">\n" +
+    "<div ng-if=\"stateHolder.AeUser.applications.length\">\n" +
     "\n" +
     "    <div ng-if=\"!uptime.loading.uptime\">\n" +
     "\n" +
@@ -65,7 +65,7 @@ angular.module('appenlight.templates').run(['$templateCache', function($template
     "                <div class=\"panel\">\n" +
     "                    <div class=\"panel-body \">\n" +
     "                        <p class=\"form-inline\">\n" +
-    "                            <select ng-model=\"uptime.resource\" ng-change=\"uptime.updateSearchParams()\" ng-options=\"r.resource_id as r.resource_name for r in AeUser.applications\" class=\"SelectField form-control input-sm slim-input\"></select>\n" +
+    "                            <select ng-model=\"uptime.resource\" ng-change=\"uptime.updateSearchParams()\" ng-options=\"r.resource_id as r.resource_name for r in stateHolder.AeUser.applications\" class=\"SelectField form-control input-sm slim-input\"></select>\n" +
     "\n" +
     "                            <select class=\"SelectField form-control input-sm\" ng-model=\"uptime.timeSpan\"\n" +
     "                                    ng-options=\"i as i.label for i in uptime.timeOptions | objectToOrderedArray:'minutes'\" ng-change=\"uptime.updateSearchParams()\"\n" +
@@ -401,9 +401,9 @@ function PluginUptimeCEApplicationController(pluginConfigsResource) {
 angular.module('appenlight.plugins.ae_uptime_ce').controller('PluginUptimeCEController',
     PluginUptimeCEController);
 
-PluginUptimeCEController.$inject = ['$scope', '$location', 'applicationsPropertyResource', 'AeUser', 'AeConfig']
+PluginUptimeCEController.$inject = ['$scope', '$location', 'applicationsPropertyResource', 'stateHolder', 'AeConfig']
 
-function PluginUptimeCEController($scope, $location, applicationsPropertyResource, AeUser, AeConfig) {
+function PluginUptimeCEController($scope, $location, applicationsPropertyResource, stateHolder, AeConfig) {
     var vm = this;
     vm.timeOptions = {};
     var allowed = ['1h', '4h', '12h', '24h', '3d', '1w', '2w', '1M'];
@@ -521,10 +521,10 @@ function PluginUptimeCEController($scope, $location, applicationsPropertyResourc
     vm.seriesUptimeData = [];
 
     vm.determineStartState = function () {
-        if (AeUser.applications.length) {
+        if (stateHolder.AeUser.applications.length) {
             vm.resource = Number($location.search().resource);
             if (!vm.resource) {
-                vm.resource = AeUser.applications[0].resource_id;
+                vm.resource = stateHolder.AeUser.applications[0].resource_id;
                 $location.search('resource', vm.resource);
             }
         }

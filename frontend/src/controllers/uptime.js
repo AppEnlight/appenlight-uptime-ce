@@ -21,9 +21,9 @@
 angular.module('appenlight.plugins.ae_uptime_ce').controller('PluginUptimeCEController',
     PluginUptimeCEController);
 
-PluginUptimeCEController.$inject = ['$scope', '$location', 'applicationsPropertyResource', 'AeUser', 'AeConfig']
+PluginUptimeCEController.$inject = ['$scope', '$location', 'applicationsPropertyResource', 'stateHolder', 'AeConfig']
 
-function PluginUptimeCEController($scope, $location, applicationsPropertyResource, AeUser, AeConfig) {
+function PluginUptimeCEController($scope, $location, applicationsPropertyResource, stateHolder, AeConfig) {
     var vm = this;
     vm.timeOptions = {};
     var allowed = ['1h', '4h', '12h', '24h', '3d', '1w', '2w', '1M'];
@@ -141,10 +141,10 @@ function PluginUptimeCEController($scope, $location, applicationsPropertyResourc
     vm.seriesUptimeData = [];
 
     vm.determineStartState = function () {
-        if (AeUser.applications.length) {
+        if (stateHolder.AeUser.applications.length) {
             vm.resource = Number($location.search().resource);
             if (!vm.resource) {
-                vm.resource = AeUser.applications[0].resource_id;
+                vm.resource = stateHolder.AeUser.applications[0].resource_id;
                 $location.search('resource', vm.resource);
             }
         }
