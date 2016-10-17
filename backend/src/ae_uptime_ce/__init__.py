@@ -31,15 +31,12 @@ PLUGIN_DEFINITION = {
                'fulltext_indexer': 'ae_uptime_ce.scripts.reindex:reindex_uptime',
                'sqlalchemy_migrations': 'ae_uptime_ce:migrations',
                'default_values_setter': 'ae_uptime_ce.scripts:set_default_values',
-               'top_nav': {
-                   'menu_dashboards_items': {'sref': 'uptime',
-                                             'label': 'Uptime Statistics'}
-               },
                'javascript': {
                    'src': 'ae_uptime_ce.js',
                    'angular_module': 'appenlight.plugins.ae_uptime_ce'
                },
-               'static': pkg_resources.resource_filename('ae_uptime_ce', 'static')
+               'static': pkg_resources.resource_filename('ae_uptime_ce',
+                                                         'static')
                }
 }
 

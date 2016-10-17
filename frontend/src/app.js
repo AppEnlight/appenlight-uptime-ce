@@ -23,7 +23,7 @@ angular.module('appenlight.plugins.ae_uptime_ce', []).config(['$stateProvider', 
         templateUrl: '/ae_uptime_ce/templates/uptime.html',
         controller: 'PluginUptimeCEController as uptime'
     });
-}]).run(['stateHolder', function (stateHolder) {
+}]).run(['stateHolder', 'AeConfig', function (stateHolder, AeConfig) {
     /**
      * register plugin in stateHolder
      */
@@ -39,5 +39,8 @@ angular.module('appenlight.plugins.ae_uptime_ce', []).config(['$stateProvider', 
             template: '/ae_uptime_ce/templates/admin_config.html'
         }
     );
-    
+
+    AeConfig.topNav.menuDashboardsItems.push(
+        {'sref': 'uptime', 'label': 'Uptime Statistics'}
+    );
 }]);
