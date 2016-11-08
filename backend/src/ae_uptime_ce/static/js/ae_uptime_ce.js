@@ -199,22 +199,25 @@ angular.module('appenlight.plugins.ae_uptime_ce', []).config(['$stateProvider', 
     /**
      * register plugin in stateHolder
      */
-    stateHolder.plugins.addInclusion('application.update',
-        {
-            name: 'ae_uptime_ce',
-            template: '/ae_uptime_ce/templates/application_update.html'
-        }
-    );
-    stateHolder.plugins.addInclusion('admin.config',
-        {
-            name: 'ae_uptime_ce',
-            template: '/ae_uptime_ce/templates/admin_config.html'
-        }
-    );
+    stateHolder.plugins.callables.push(function () {
+        
+        AeConfig.topNav.menuDashboardsItems.push(
+            {'sref': 'uptime', 'label': 'Uptime Statistics'}
+        );
 
-    AeConfig.topNav.menuDashboardsItems.push(
-        {'sref': 'uptime', 'label': 'Uptime Statistics'}
-    );
+        stateHolder.plugins.addInclusion('application.update',
+            {
+                name: 'ae_uptime_ce',
+                template: '/ae_uptime_ce/templates/application_update.html'
+            }
+        );
+        stateHolder.plugins.addInclusion('admin.config',
+            {
+                name: 'ae_uptime_ce',
+                template: '/ae_uptime_ce/templates/admin_config.html'
+            }
+        );
+    });
 }]);
 
 ;// # Copyright (C) 2010-2016  RhodeCode GmbH
