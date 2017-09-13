@@ -1,0 +1,14 @@
+<div class="form-group" ng-controller="PluginUptimeCEApplicationController as ctrlr" ng-init="ctrlr.init(plugin_ctrlr.resource, plugin_ctrlr.section, tmpl.name)">
+    <form name="ctrlr.pluginConfigForm"></form>
+    <data-form-errors errors="ctrlr.pluginConfigForm.ae_validation.uptime_url"></data-form-errors>
+    <label class="control-label col-sm-4 col-lg-3">
+        Application URL
+    </label>
+    <div class=" col-sm-8 col-lg-9 ">
+        <input class="form-control"  name="uptime_url" placeholder="http://somedomain.com" type="text" ng-model="ctrlr.plugin.config.uptime_url">
+        <p class="description">Required for uptime monitoring</p>
+    </div>
+
+    <a class="btn btn-info" ng-click="ctrlr.saveSettings()">Save plugin settings</a>
+
+</div>

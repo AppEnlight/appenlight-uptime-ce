@@ -1,0 +1,26 @@
+<h2>Monitoring location names</h2>
+
+<p>You can set the country flags and location names specified in monitoring tools</p>
+
+<form class="form-horizontal" ng-controller="PluginUptimeCEConfigController as ctrlr" ng-init="ctrlr.init(null, plugin_ctrlr.section, tmpl.name)">
+
+    <div class="form-group" ng-repeat="location in ctrlr.plugin.config.uptime_regions_map track by $index">
+        <label class="control-label col-sm-4 col-lg-3">
+            Location {{ $index +1 }}
+        </label>
+        <div class="col-sm-7 col-lg-8 form-inline">
+            <input type="text" ng-model="location.name" class="form-control" placeholder="Location name">
+            <input type="text" ng-model="location.country" class="form-control slim-input" placeholder="Country code">
+                    <span class="dropdown" data-uib-dropdown>
+                        <a class="btn btn-danger btn-sm" data-uib-dropdown-toggle><span class="fa fa-trash-o"></span></a>
+                      <ul class="dropdown-menu">
+                          <li><a>No</a></li>
+                          <li><a ng-click="ctrlr.removeLocation(location)">Yes</a></li>
+                      </ul>
+                    </span>
+        </div>
+    </div>
+
+    <a class="btn btn-default" ng-click="ctrlr.addNewLocation()"><span class="fa fa-plus-circle"></span> Add another location</a>
+    <a class="btn btn-info" ng-click="ctrlr.saveSettings()">Save plugin settings</a>
+</form>
