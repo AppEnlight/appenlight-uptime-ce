@@ -17,6 +17,9 @@
 import logging
 import datetime
 from collections import defaultdict
+import elasticsearch.exceptions
+import elasticsearch.helpers
+
 from appenlight.scripts.reindex_elasticsearch import detect_tables
 from ae_uptime_ce.models.uptime_metric import UptimeMetric
 from appenlight.models import (
@@ -26,11 +29,12 @@ from appenlight.models import (
 
 log = logging.getLogger(__name__)
 
+
 def reindex_uptime():
     try:
-        Datastores.es.delete_index('rcae_u*')
-    except Exception as e:
-        print(e)
+        Datastores.es.indices.delete('rcae_u*')
+    except elasticsearch.exceptions.NotFoundError as e:
+        log.error(e)
 
     log.info('reindexing uptime')
     i = 0
@@ -53,7 +57,9 @@ def reindex_uptime():
                 name = partition_table.name
                 log.info('round  {}, {}'.format(i, name))
                 for k, v in es_docs.items():
-                    Datastores.es.bulk_index(k, 'log', v)
+                    to_update = {'_index': k, '_type': 'log'}
+                    [i.update(to_update) for i in v]
+                    elasticsearch.helpers.bulk(Datastores.es, v)
 
     log.info(
         'total docs {} {}'.format(i, datetime.datetime.now() - task_start))
