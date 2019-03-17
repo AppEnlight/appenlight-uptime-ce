@@ -16,34 +16,32 @@
 
 import pkg_resources
 
-__license__ = 'Apache 2.0'
-__author__ = 'RhodeCode GmbH'
-__url__ = 'http://rhodecode.com'
+__license__ = "Apache 2.0"
+__author__ = "RhodeCode GmbH"
+__url__ = "http://rhodecode.com"
 
 PLUGIN_DEFINITION = {
-    'name': 'ae_uptime_ce',
-    'config': {'celery_tasks': ['ae_uptime_ce.celery.tasks'],
-               'fulltext_indexer': 'ae_uptime_ce.scripts.reindex:reindex_uptime',
-               'sqlalchemy_migrations': 'ae_uptime_ce:migrations',
-               'default_values_setter': 'ae_uptime_ce.scripts:set_default_values',
-               'javascript': {
-                   'src': 'ae_uptime_ce.js',
-                   'angular_module': 'appenlight.plugins.ae_uptime_ce'
-               },
-               'static': pkg_resources.resource_filename('ae_uptime_ce',
-                                                         'static')
-               }
+    "name": "ae_uptime_ce",
+    "config": {
+        "celery_tasks": ["ae_uptime_ce.celery.tasks"],
+        "fulltext_indexer": "ae_uptime_ce.scripts.reindex:reindex_uptime",
+        "sqlalchemy_migrations": "ae_uptime_ce:migrations",
+        "default_values_setter": "ae_uptime_ce.scripts:set_default_values",
+        "javascript": {
+            "src": "ae_uptime_ce.js",
+            "angular_module": "appenlight.plugins.ae_uptime_ce",
+        },
+        "static": pkg_resources.resource_filename("ae_uptime_ce", "static"),
+    },
 }
 
 
 def includeme(config):
     """Add the application's view handlers.
     """
-    config.add_route('uptime_api_uptime', '/api/uptime')
-    config.add_route('uptime_api_uptime_app_list', '/api/uptime_app_list')
+    config.add_route("uptime_api_uptime", "/api/uptime")
+    config.add_route("uptime_api_uptime_app_list", "/api/uptime_app_list")
     config.register_appenlight_plugin(
-        PLUGIN_DEFINITION['name'],
-        PLUGIN_DEFINITION['config']
+        PLUGIN_DEFINITION["name"], PLUGIN_DEFINITION["config"]
     )
-    config.scan('ae_uptime_ce',
-                ignore=['ae_uptime_ce.scripts'])
+    config.scan("ae_uptime_ce", ignore=["ae_uptime_ce.scripts"])

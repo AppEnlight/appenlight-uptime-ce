@@ -23,7 +23,7 @@ Create Date: 2016-03-24 12:55:47.148578
 """
 
 # revision identifiers, used by Alembic.
-revision = '9df5db7a0def'
+revision = "9df5db7a0def"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -32,32 +32,39 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.sql import table
 
-def upgrade():
-    version_table = table('rc_versions',
-                          sa.Column('name', sa.Unicode(40)),
-                          sa.Column('value', sa.Unicode(40))
-                          )
 
-    insert = version_table.insert().values(name='appenlight_es_uptime_metrics')
+def upgrade():
+    version_table = table(
+        "rc_versions",
+        sa.Column("name", sa.Unicode(40)),
+        sa.Column("value", sa.Unicode(40)),
+    )
+
+    insert = version_table.insert().values(name="appenlight_es_uptime_metrics")
     op.execute(insert)
 
     op.create_table(
-        'ae_uptime_ce_metrics',
-        sa.Column('resource_id', sa.Integer(),
-                  sa.ForeignKey('resources.resource_id',
-                                onupdate='cascade',
-                                ondelete='cascade'), index=True),
-        sa.Column('start_interval', sa.DateTime, nullable=False, index=True),
-        sa.Column('response_time', sa.types.REAL, nullable=False, server_default="0"),
-        sa.Column('status_code', sa.Integer),
-        sa.Column('owner_user_id', sa.Integer),
-        sa.Column('tries', sa.Integer, nullable=False, server_default="0"),
-        sa.Column('is_ok', sa.Boolean, nullable=False, server_default="True"),
-        sa.Column('location', sa.Integer, nullable=False, server_default="1"),
-        sa.Column('id', sa.BigInteger, nullable=False, primary_key=True),
+        "ae_uptime_ce_metrics",
+        sa.Column(
+            "resource_id",
+            sa.Integer(),
+            sa.ForeignKey(
+                "resources.resource_id", onupdate="cascade", ondelete="cascade"
+            ),
+            index=True,
+        ),
+        sa.Column("start_interval", sa.DateTime, nullable=False, index=True),
+        sa.Column("response_time", sa.types.REAL, nullable=False, server_default="0"),
+        sa.Column("status_code", sa.Integer),
+        sa.Column("owner_user_id", sa.Integer),
+        sa.Column("tries", sa.Integer, nullable=False, server_default="0"),
+        sa.Column("is_ok", sa.Boolean, nullable=False, server_default="True"),
+        sa.Column("location", sa.Integer, nullable=False, server_default="1"),
+        sa.Column("id", sa.BigInteger, nullable=False, primary_key=True),
     )
 
-    op.execute('''
+    op.execute(
+        """
 CREATE OR REPLACE FUNCTION partition_ae_uptime_ce_metrics()
   RETURNS trigger AS
 $BODY$
@@ -88,11 +95,14 @@ $BODY$
     $BODY$
   LANGUAGE plpgsql VOLATILE SECURITY DEFINER
   COST 100;
-    ''')
+    """
+    )
 
-    op.execute('''
+    op.execute(
+        """
     CREATE TRIGGER ae_uptime_ce_metrics BEFORE INSERT ON ae_uptime_ce_metrics FOR EACH ROW EXECUTE PROCEDURE partition_ae_uptime_ce_metrics();
-    ''')
+    """
+    )
 
 
 def downgrade():

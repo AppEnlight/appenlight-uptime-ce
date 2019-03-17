@@ -32,8 +32,7 @@ log = logging.getLogger(__name__)
 
 class UptimeMetricService(BaseService):
     @classmethod
-    def get_uptime_by_app(cls, resource_id, since_when, db_session=None,
-                          until=None):
+    def get_uptime_by_app(cls, resource_id, since_when, db_session=None, until=None):
         db_session = get_db_session(db_session)
         if not until:
             until = datetime.utcnow()
@@ -41,8 +40,9 @@ class UptimeMetricService(BaseService):
         query = query.filter(UptimeMetric.start_interval >= since_when)
         query = query.filter(UptimeMetric.start_interval < until)
         query = query.filter(UptimeMetric.resource_id == resource_id)
-        query = query.filter(sa.or_(UptimeMetric.response_time == 0,
-                                    UptimeMetric.status_code >= 400))
+        query = query.filter(
+            sa.or_(UptimeMetric.response_time == 0, UptimeMetric.status_code >= 400)
+        )
 
         delta = until - since_when
         minutes = divmod(delta.total_seconds(), 60)[0]
@@ -57,12 +57,13 @@ class UptimeMetricService(BaseService):
         now = datetime.utcnow().replace(microsecond=0, second=0)
         floor_func = UptimeMetric.start_interval
         since_when = now - timedelta(hours=1)
-        query = db_session.query(floor_func.label('interval'),
-                                 UptimeMetric.response_time,
-                                 UptimeMetric.tries,
-                                 UptimeMetric.status_code,
-                                 UptimeMetric.location
-                                 )
+        query = db_session.query(
+            floor_func.label("interval"),
+            UptimeMetric.response_time,
+            UptimeMetric.tries,
+            UptimeMetric.status_code,
+            UptimeMetric.location,
+        )
         query = query.filter(UptimeMetric.resource_id == resource_id)
         query = query.filter(UptimeMetric.start_interval >= since_when)
         query = query.order_by(sa.desc(floor_func))
@@ -72,18 +73,16 @@ class UptimeMetricService(BaseService):
     def get_daily_uptime_stats(cls, resource_id, db_session=None):
         db_session = get_db_session(db_session)
         now = datetime.utcnow().replace(microsecond=0, second=0)
-        floor_func = sa.func.date_trunc('day', UptimeMetric.start_interval)
+        floor_func = sa.func.date_trunc("day", UptimeMetric.start_interval)
         since_when = now.replace(day=1, minute=0, second=0)
-        rt_avg = sa.func.avg(
-            sa.func.nullif(UptimeMetric.response_time, 0)
-        ).label('response_time')
-        tries_sum = sa.func.sum(UptimeMetric.tries).label('tries')
-        code_min = sa.func.min(UptimeMetric.status_code).label('status_code')
-        query = db_session.query(floor_func.label('interval'),
-                                 rt_avg,
-                                 tries_sum,
-                                 code_min,
-                                 )
+        rt_avg = sa.func.avg(sa.func.nullif(UptimeMetric.response_time, 0)).label(
+            "response_time"
+        )
+        tries_sum = sa.func.sum(UptimeMetric.tries).label("tries")
+        code_min = sa.func.min(UptimeMetric.status_code).label("status_code")
+        query = db_session.query(
+            floor_func.label("interval"), rt_avg, tries_sum, code_min
+        )
         query = query.filter(UptimeMetric.resource_id == resource_id)
         query = query.filter(UptimeMetric.start_interval >= since_when)
         query = query.group_by(floor_func)
@@ -92,108 +91,145 @@ class UptimeMetricService(BaseService):
 
     @classmethod
     def uptime_for_resource(cls, request, filter_settings):
-        delta = filter_settings['end_date'] - filter_settings['start_date']
-        if delta < h.time_deltas.get('12h')['delta']:
-            interval = '1m'
-        elif delta <= h.time_deltas.get('3d')['delta']:
-            interval = '5m'
-        elif delta >= h.time_deltas.get('2w')['delta']:
-            interval = '24h'
+        delta = filter_settings["end_date"] - filter_settings["start_date"]
+        if delta < h.time_deltas.get("12h")["delta"]:
+            interval = "1m"
+        elif delta <= h.time_deltas.get("3d")["delta"]:
+            interval = "5m"
+        elif delta >= h.time_deltas.get("2w")["delta"]:
+            interval = "24h"
         else:
-            interval = '1h'
+            interval = "1h"
 
         chart_config = {
-            'parentAgg': {'config': {'interval': interval},
-                          'type': 'time_histogram'},
-            'aggs': [
-                {'config': {'field': 'response_time', 'label': 'requests'},
-                 'type': 'avg', 'id': 'response_time'},
-            ]}
+            "parentAgg": {"config": {"interval": interval}, "type": "time_histogram"},
+            "aggs": [
+                {
+                    "config": {"field": "response_time", "label": "requests"},
+                    "type": "avg",
+                    "id": "response_time",
+                }
+            ],
+        }
 
         index_names = es_index_name_limiter(
-            start_date=filter_settings['start_date'],
-            end_date=filter_settings['end_date'], ixtypes=['uptime'])
+            start_date=filter_settings["start_date"],
+            end_date=filter_settings["end_date"],
+            ixtypes=["uptime"],
+        )
 
         result_dict = {
-            'name': 'metrics',
-            'chart_type': chart_config.get('chartType'),
-            'parent_agg': chart_config['parentAgg'],
-            'series': [],
-            'system_labels': {},
-            'groups': [],
-            'rect_regions': [],
-            'categories': []
+            "name": "metrics",
+            "chart_type": chart_config.get("chartType"),
+            "parent_agg": chart_config["parentAgg"],
+            "series": [],
+            "system_labels": {},
+            "groups": [],
+            "rect_regions": [],
+            "categories": [],
         }
 
         if not index_names:
             return result_dict
 
         es_query = {
-            'query': {'filtered': {'filter': {
-                'and': [
-                    {'terms': {
-                        'resource_id': [filter_settings['resource'][0]]}},
-                    {'range': {
-                        'timestamp': {
-                            'gte': filter_settings['start_date'],
-                            'lte': filter_settings['end_date']}
-                    }}]}}},
-            'aggs': {'parent_agg': {
-                'date_histogram': {
-                    'field': 'timestamp',
-                    'interval': interval,
-                    'extended_bounds': {
-                        'max': filter_settings['end_date'],
-                        'min': filter_settings['start_date']},
-                    'min_doc_count': 0}, 'aggs': {
-                    'response_time': {'filter': {
-                        'and': [
-                            {'exists': {
-                                'field': 'tags.response_time.numeric_values'}}]
-                    },
-                        'aggs': {'sub_agg': {'avg': {
-                            'field': 'tags.response_time.numeric_values'}}
-                        }
+            "query": {
+                "filtered": {
+                    "filter": {
+                        "and": [
+                            {
+                                "terms": {
+                                    "resource_id": [filter_settings["resource"][0]]
+                                }
+                            },
+                            {
+                                "range": {
+                                    "timestamp": {
+                                        "gte": filter_settings["start_date"],
+                                        "lte": filter_settings["end_date"],
+                                    }
+                                }
+                            },
+                        ]
                     }
                 }
-            }
-            }
+            },
+            "aggs": {
+                "parent_agg": {
+                    "date_histogram": {
+                        "field": "timestamp",
+                        "interval": interval,
+                        "extended_bounds": {
+                            "max": filter_settings["end_date"],
+                            "min": filter_settings["start_date"],
+                        },
+                        "min_doc_count": 0,
+                    },
+                    "aggs": {
+                        "response_time": {
+                            "filter": {
+                                "and": [
+                                    {
+                                        "exists": {
+                                            "field": "tags.response_time.numeric_values"
+                                        }
+                                    }
+                                ]
+                            },
+                            "aggs": {
+                                "sub_agg": {
+                                    "avg": {
+                                        "field": "tags.response_time.numeric_values"
+                                    }
+                                }
+                            },
+                        }
+                    },
+                }
+            },
         }
 
         result = request.es_conn.search(
-            body=es_query, index=index_names, doc_type='log', size=0)
+            body=es_query, index=index_names, doc_type="log", size=0
+        )
 
         plot_data = []
-        for item in result['aggregations']['parent_agg']['buckets']:
-            x_time = datetime.utcfromtimestamp(int(item['key']) / 1000)
+        for item in result["aggregations"]["parent_agg"]["buckets"]:
+            x_time = datetime.utcfromtimestamp(int(item["key"]) / 1000)
             point = {"x": x_time}
-            value = item['response_time']['sub_agg']['value']
-            point['response_time'] = round(value, 3) if value else 0
+            value = item["response_time"]["sub_agg"]["value"]
+            point["response_time"] = round(value, 3) if value else 0
             plot_data.append(point)
-        result_dict['series'] = plot_data
+        result_dict["series"] = plot_data
         return result_dict
 
     @classmethod
     def check_for_alert(cls, resource, *args, **kwargs):
         """ Check for open uptime alerts. Create new one if nothing is found
         and send alerts """
-        db_session = get_db_session(kwargs.get('db_session'))
+        db_session = get_db_session(kwargs.get("db_session"))
         request = get_current_request()
-        event_type = 'uptime_alert'
-        metric = kwargs['metric']
-        event = EventService.for_resource([resource.resource_id],
-                                          event_type=Event.types[event_type],
-                                          status=Event.statuses['active'])
+        event_type = "uptime_alert"
+        metric = kwargs["metric"]
+        event = EventService.for_resource(
+            [resource.resource_id],
+            event_type=Event.types[event_type],
+            status=Event.statuses["active"],
+        )
         if event.first():
-            log.info('ALERT: PROGRESS: %s %s' % (event_type, resource))
+            log.info("ALERT: PROGRESS: %s %s" % (event_type, resource))
         else:
-            log.warning('ALERT: OPEN: %s %s' % (event_type, resource))
-            event_values = {"status_code": metric["status_code"],
-                            "tries": metric['tries'],
-                            "response_time": metric['response_time']}
-            new_event = Event(resource_id=resource.resource_id,
-                              event_type=Event.types[event_type],
-                              status=Event.statuses['active'],
-                              values=event_values)
+            log.warning("ALERT: OPEN: %s %s" % (event_type, resource))
+            event_values = {
+                "status_code": metric["status_code"],
+                "tries": metric["tries"],
+                "response_time": metric["response_time"],
+            }
+            new_event = Event(
+                resource_id=resource.resource_id,
+                event_type=Event.types[event_type],
+                status=Event.statuses["active"],
+                values=event_values,
+            )
             db_session.add(new_event)
             new_event.send_alerts(request=request, resource=resource)

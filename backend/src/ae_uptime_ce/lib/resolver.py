@@ -20,10 +20,7 @@ import logging
 from gevent.resolver_ares import Resolver
 from dogpile.cache import make_region
 
-memory_region = make_region().configure(
-    'dogpile.cache.memory',
-    expiration_time=600
-)
+memory_region = make_region().configure("dogpile.cache.memory", expiration_time=600)
 
 log = logging.getLogger(__name__)
 
@@ -34,9 +31,10 @@ class CachingResolverException(Exception):
 
 class CachingResolver(Resolver):
     def __repr__(self):
-        return '<gevent.resolver_thread.CachingResolver at 0x%x pool=%r>' % (
+        return "<gevent.resolver_thread.CachingResolver at 0x%x pool=%r>" % (
             id(self),
-            self.pool)
+            self.pool,
+        )
 
     def gethostbyname(self, *args):
         @memory_region.cache_on_arguments()
@@ -60,7 +58,7 @@ class CachingResolver(Resolver):
 
         result = _cached(*args, **kwargs)
         if result is None:
-            raise CachingResolverException('Cant resolve {}'.format(args))
+            raise CachingResolverException("Cant resolve {}".format(args))
         return result
 
     def gethostbyaddr(self, *args, **kwargs):

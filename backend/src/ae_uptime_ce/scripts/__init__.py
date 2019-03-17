@@ -21,14 +21,15 @@ from appenlight.models import DBSession
 
 
 def set_default_values():
-    row = PluginConfigService.by_query(plugin_name=PLUGIN_DEFINITION['name'],
-                                       section='global').first()
+    row = PluginConfigService.by_query(
+        plugin_name=PLUGIN_DEFINITION["name"], section="global"
+    ).first()
 
     if not row:
         plugin = PluginConfig()
         plugin.config = {"uptime_regions_map": [], "json_config_version": 1}
-        plugin.section = 'global'
-        plugin.plugin_name = PLUGIN_DEFINITION['name']
-        plugin.config['json_config_version'] = 1
+        plugin.section = "global"
+        plugin.plugin_name = PLUGIN_DEFINITION["name"]
+        plugin.config["json_config_version"] = 1
         DBSession.add(plugin)
         DBSession.flush()

@@ -21,8 +21,9 @@ class UptimeConfigSchema(colander.MappingSchema):
     """
     Validates slow call format in slow call list
     """
-    uptime_url = colander.SchemaNode(colander.String(), missing='',
-                                     validator=colander.All(
-                                         colander.url,
-                                         colander.Regex('(http|https):\/\/')
-                                     ))
+
+    uptime_url = colander.SchemaNode(
+        colander.String(),
+        missing="",
+        validator=colander.All(colander.url, colander.Regex("(http|https):\/\/")),
+    )
