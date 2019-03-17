@@ -161,7 +161,7 @@ class UptimeMetricService(BaseService):
         }
 
         result = request.es_conn.search(
-            es_query, index=index_names, doc_type='log', size=0)
+            body=es_query, index=index_names, doc_type='log', size=0)
 
         plot_data = []
         for item in result['aggregations']['parent_agg']['buckets']:
