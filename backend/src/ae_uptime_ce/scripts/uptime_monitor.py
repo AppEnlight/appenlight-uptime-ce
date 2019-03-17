@@ -17,7 +17,7 @@
 import gevent
 from gevent import monkey
 
-gevent.get_hub().resolver_class = [
+gevent.config.resolver = [
     'ae_uptime_ce.lib.resolver.CachingResolver',
     'gevent.resolver_ares.Resolver',
     'gevent.resolver_thread.Resolver',
