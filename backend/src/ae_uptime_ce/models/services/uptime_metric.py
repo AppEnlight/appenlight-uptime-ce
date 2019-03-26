@@ -134,24 +134,22 @@ class UptimeMetricService(BaseService):
 
         es_query = {
             "query": {
-                "filtered": {
-                    "filter": {
-                        "and": [
-                            {
-                                "terms": {
-                                    "resource_id": [filter_settings["resource"][0]]
+                "bool": {
+                    "filter": [
+                        {
+                            "terms": {
+                                "resource_id": [filter_settings["resource"][0]]
+                            }
+                        },
+                        {
+                            "range": {
+                                "timestamp": {
+                                    "gte": filter_settings["start_date"],
+                                    "lte": filter_settings["end_date"],
                                 }
-                            },
-                            {
-                                "range": {
-                                    "timestamp": {
-                                        "gte": filter_settings["start_date"],
-                                        "lte": filter_settings["end_date"],
-                                    }
-                                }
-                            },
-                        ]
-                    }
+                            }
+                        },
+                    ]
                 }
             },
             "aggs": {
@@ -168,13 +166,15 @@ class UptimeMetricService(BaseService):
                     "aggs": {
                         "response_time": {
                             "filter": {
-                                "and": [
-                                    {
-                                        "exists": {
-                                            "field": "tags.response_time.numeric_values"
+                                "bool":{
+                                    "filter": [
+                                        {
+                                            "exists": {
+                                                "field": "tags.response_time.numeric_values"
+                                            }
                                         }
-                                    }
-                                ]
+                                    ]
+                                }
                             },
                             "aggs": {
                                 "sub_agg": {
