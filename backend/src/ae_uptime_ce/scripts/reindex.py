@@ -29,14 +29,14 @@ log = logging.getLogger(__name__)
 
 def reindex_uptime():
     try:
-        Datastores.es.indices.delete("rcae_u*")
+        Datastores.es.indices.delete("rcae_uptime_ce_*")
     except elasticsearch.exceptions.NotFoundError as e:
         log.error(e)
 
     log.info("reindexing uptime")
     i = 0
     task_start = datetime.datetime.now()
-    uptime_tables = detect_tables("uptime_ce_metrics_p_")
+    uptime_tables = detect_tables("ae_uptime_ce_metrics_p_")
     for partition_table in uptime_tables:
         conn = DBSession.connection().execution_options(stream_results=True)
         result = conn.execute(partition_table.select())

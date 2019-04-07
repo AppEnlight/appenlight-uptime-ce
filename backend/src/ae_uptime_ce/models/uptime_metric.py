@@ -40,10 +40,11 @@ class UptimeMetric(Base, BaseModel):
 
     @property
     def partition_id(self):
-        return "rcae_u_%s" % self.start_interval.strftime("%Y_%m")
+        return "rcae_uptime_ce_%s" % self.start_interval.strftime("%Y_%m")
 
     def es_doc(self):
         return {
+            "uptime_id": self.id,
             "resource_id": self.resource_id,
             "timestamp": self.start_interval,
             "permanent": True,

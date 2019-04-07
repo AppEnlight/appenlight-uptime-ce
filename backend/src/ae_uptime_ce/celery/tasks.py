@@ -83,5 +83,5 @@ def add_uptime_stats(params, metric):
 
 def add_metrics_uptime(es_docs):
     for doc in es_docs:
-        partition = "rcae_u_%s" % doc["timestamp"].strftime("%Y_%m")
+        partition = "rcae_uptime_ce_%s" % doc["timestamp"].strftime("%Y_%m")
         Datastores.es.index(partition, "log", doc)
