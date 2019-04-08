@@ -2,12 +2,8 @@
   "name": "ae_uptime_ce",
   "description": "Uptime monitoring layer for AppEnlight",
   "devDependencies": {
-    "bower": "1.7.9",
-    "bower-requirejs": "1.2.0",
     "grunt": "1.0.1",
     "grunt-angular-templates": "1.0.4",
-    "grunt-bower-concat": "1.0.0",
-    "grunt-bower-requirejs": "2.0.0",
     "grunt-contrib-concat": "1.0.1",
     "grunt-contrib-copy": "1.0.0",
     "grunt-contrib-jshint": "1.0.0",
@@ -17,9 +13,12 @@
     "grunt-contrib-uglify": "1.0.1",
     "grunt-contrib-watch": "1.0.0",
     "grunt-remove-logging": "0.2.0",
-    "karma": "0.13.22",
-    "underscore": "1.8.3",
-    "yo": "1.8.4",
-    "ini": "1.3.4"
+    "ini": "1.3.4",
+    "karma": "0.13.22"
+  },
+  "scripts": {
+    "build": "grunt",
+    "watch": "grunt watch",
+    "watch:dev": "grunt watch:dev"
   }
 }
