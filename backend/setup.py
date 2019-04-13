@@ -58,9 +58,10 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
-        "Topic :: Software Development :: Monitoring",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
+        "Topic :: System :: Monitoring",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "License :: OSI Approved :: Apache Software License"
     ],
     keywords="appenlight uptime monitoring",
     python_requires=">=3.5",
