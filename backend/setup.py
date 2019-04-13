@@ -50,6 +50,11 @@ __license__ = _get_meta_var("__license__", _metadata)
 __author__ = _get_meta_var("__author__", _metadata)
 __url__ = _get_meta_var("__url__", _metadata)
 
+
+found_packages = find_packages("src")
+found_packages.append("ae_uptime_ce.migrations")
+found_packages.append("ae_uptime_ce.migrations.versions")
+
 setup(
     name="ae_uptime_ce",
     version="2.0.0rc1",
@@ -70,7 +75,8 @@ setup(
     keywords="appenlight uptime monitoring",
     python_requires=">=3.5",
     package_dir={"": "src"},
-    packages=find_packages("src"),
+    packages=found_packages,
+    include_package_data=True,
     install_requires=requires,
     entry_points={
         "console_scripts": [
