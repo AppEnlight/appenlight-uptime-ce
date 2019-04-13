@@ -24,7 +24,7 @@ def parse_req(req):
 requires = [_f for _f in map(parse_req, REQUIREMENTS) if _f]
 
 # Get the long description from the README file
-with open(path.join(here, "README.rst"), encoding="utf-8") as f:
+with open(path.join(here, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 
@@ -42,16 +42,13 @@ def _get_meta_var(name, data, callback_handler=None):
 with open(os.path.join(here, "src", "ae_uptime_ce", "__init__.py"), "r") as _meta:
     _metadata = _meta.read()
 
-with open(os.path.join(here, "VERSION"), "r") as _meta_version:
-    __version__ = _meta_version.read().strip()
-
 __license__ = _get_meta_var("__license__", _metadata)
 __author__ = _get_meta_var("__author__", _metadata)
 __url__ = _get_meta_var("__url__", _metadata)
 
 setup(
     name="ae_uptime_ce",
-    version=__version__,
+    version="2.0.0rc1",
     description="Appenlight Uptime Monitoring CE",
     long_description=long_description,
     url=__url__,
@@ -66,6 +63,7 @@ setup(
         "Programming Language :: Python :: 3.4",
     ],
     keywords="appenlight uptime monitoring",
+    python_requires=">=3.5",
     package_dir={"": "src"},
     packages=find_packages("src"),
     install_requires=requires,
