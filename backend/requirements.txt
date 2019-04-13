@@ -1,3 +1,3 @@
-gevent>=1.1.1
-requests>=2.9.1
-colander>=1.2
+gevent>=1.4.0
+requests>=2.21.0
+colander>=1.7

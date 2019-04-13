@@ -21,7 +21,11 @@ def parse_req(req):
     return compiled.search(req).group(1).strip()
 
 
-requires = [_f for _f in map(parse_req, REQUIREMENTS) if _f]
+if 'APPENLIGHT_DEVELOP' in os.environ:
+    requires = [_f for _f in map(parse_req, REQUIREMENTS) if _f]
+else:
+    requires = REQUIREMENTS
+
 
 # Get the long description from the README file
 with open(path.join(here, "README.md"), encoding="utf-8") as f:
