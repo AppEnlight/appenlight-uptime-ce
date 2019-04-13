@@ -44,4 +44,4 @@ def includeme(config):
     config.register_appenlight_plugin(
         PLUGIN_DEFINITION["name"], PLUGIN_DEFINITION["config"]
     )
-    config.scan("ae_uptime_ce", ignore=["ae_uptime_ce.scripts"])
+    config.scan("ae_uptime_ce", ignore=["ae_uptime_ce.scripts", "ae_uptime_ce.migrations"])
